@@ -33,9 +33,116 @@ Thus, the internal representation of the number 15.375 in the double format will
 The algorithm described above is implemented in the "inside_dob" function. 
 Also I wrote it for short int format, but it's easyer - you shoud output only sign and binary number, and add nulls so that there will be 16 bits (function "inside_int").
 
+ ```
+void inside_dob(double dob_num) {
+    // Display the internal representation of a double-precision floating-point number.
+    double mant, flag_neg = 0, flag_other = 0;
+    int degree = 0;
+
+    if (dob_num < 1 && dob_num > -1) {
+        flag_other = 1;
+    }
+
+    if (dob_num < 0) {
+        cout << "Sign: 1" << "\n";
+        dob_num = -dob_num;
+        flag_neg = 1;
+    }
+    else {
+        cout << "Sign: 0" << "\n";
+    }
+
+    if (!flag_other) {
+        while ((1 > dob_num / pow(2, degree)) || (dob_num / pow(2, degree) > 2)) {
+            degree++;
+        }
+    }
+    else {
+        while ((1 > dob_num * pow(2, degree)) || (dob_num * pow(2, degree) > 2)) {
+            degree++;
+        }
+    }
+
+    if (!flag_other) {
+        mant = dob_num / pow(2, degree) - 1;
+        degree = 1023 + degree;
+    }
+    else {
+        mant = dob_num * pow(2, degree) - 1;
+        degree = 1023 - degree;
+    }
+
+    cout << "Exponent: " << bin_int(degree, 11) << "\n" << "Mantissa: " << bin_dob(mant, 51);
+}
+
+void inside_int(int int_num) {
+    // Display the internal representation of a short integer.
+    if (int_num < 0) {
+        cout << "Sign: 1" << "\n";
+        int_num = -int_num;
+    }
+    else {
+        cout << "Sign: 0" << "\n";
+    }
+
+    cout << "Integer part: " << bin_int(int_num, 16);
+}
+```
+
 # Bonus
 
 The final part of this project is algorithm of shifting double and short int numbers in the specified direction for the specified number of bits (functions "dob_shift" and "int_shift"). These functions uses the reinterpret_cast operator to convert a pointer to a given number into a pointer to an unsigned 64-bit integer (uint64_t). This is done to enable working directly with the bitwise representation of the number.
 Next, the value of the bitwise representation of the original number is stored in a new variable. The function examines the parameters passed to it to determine the direction and the number of bits to shift, and it performs the shift using standard bitwise operations in C++.
 
+```
+short int shift_int(short int num, int move, int steps) {
+    // Perform a bitwise shift operation on a short integer.
+    if (steps <= 0) {
+        return num;
+    }
+    uint16_t* new_num = reinterpret_cast<uint16_t*>(&num);
+    uint16_t bun_bits = *new_num;
 
+    switch (move) {
+    case 1: // Left shift
+        bun_bits <<= steps;
+        break;
+    case 2: // Right shift
+        bun_bits >>= steps;
+        break;
+    default:
+        cout << "Invalid shift direction." << endl;
+        return num;
+    }
+
+    *new_num = bun_bits;
+
+    return num;
+}
+
+double dob_shift(double num, int move, int steps) {
+    // Perform a bitwise shift operation on a double-precision floating-point number.
+    if (steps <= 0) {
+        return num;
+    }
+
+    uint64_t* new_num = reinterpret_cast<uint64_t*>(&num);
+    uint64_t num_bits = *new_num;
+
+    switch (move) {
+    case 1: // Left shift
+        num_bits <<= steps;
+        break;
+    case 2: // Right shift
+        num_bits >>= steps;
+        break;
+    default:
+        cout << "Invalid shift direction." << endl;
+        return num;
+    }
+
+    *new_num = num_bits;
+
+    return num;
+}
+```
